@@ -2,29 +2,54 @@ services:
   db:
     image: postgres:16
     environment:
-      # TODO
+      POSTGRES_USER: "{{ db_user }}"
+      POSTGRES_PASSWORD: "{{ db_password }}"
+      POSTGRES_DB: "{{ db_name }}"
     volumes:
-      # TODO
+      - "{{ data_dir }}/pgdata:/var/lib/postgresql/data"
+      - "{{ data_dir }}/configs/pgsql:/docker-entrypoint-initdb.d:ro"
     networks:
       net:
 
   authelia:
     image: authelia
     environment:
-      # TODO
+      AUTHELIA_STORAGE_POSTGRES_HOST: db
+      AUTHELIA_STORAGE_POSTGRES_PORT: 5432
+      AUTHELIA_STORAGE_POSTGRES_DATABASE: "{{ authelia_db }}"
+      AUTHELIA_STORAGE_POSTGRES_USERNAME: "{{ authelia_db_user }}"
+      AUTHELIA_STORAGE_POSTGRES_PASSWORD: "{{ authelia_db_password }}"
     labels:
-      # TODO
+      - "traefik.enable=true"
+      - "traefik.http.routers.authelia.rule=Host(`auth.{{ domain_name }}`)"
+      - "traefik.http.routers.authelia.entrypoints=websecure"
+      - "traefik.http.routers.authelia.tls=true"
+      - "traefik.http.services.authelia.loadbalancer.server.port=9091"
     volumes:
-      # TODO
+      - "{{ data_dir }}/configs/authelia:/config:ro"
+      - "{{ data_dir }}/certs/wildcard.crt:/usr/local/share/ca-certificates/wildcard.crt:ro"
     networks:
       net:
+    depends_on:
+      - db
 
   forgejo:
     image: forgejo
     environment:
-      # TODO
+      POSTGRES_USER: "{{ db_user }}"
+      POSTGRES_PASSWORD: "{{ db_password }}"
+      POSTGRES_DB: "{{ db_name }}"
+      FORGEJO_ADMIN_USERNAME: "{{ forgejo_admin_username }}"
+      FORGEJO_ADMIN_PASSWORD: "{{ forgejo_admin_password }}"
+      FORGEJO_ADMIN_EMAIL: "{{ forgejo_admin_email }}"
+      FORGEJO_OIDC_CLIENT_ID: "{{ forgejo_oidc_client_id }}"
+      FORGEJO_OIDC_CLIENT_SECRET: "{{ forgejo_oidc_client_secret }}"
     labels:
-      # TODO
+      - "traefik.enable=true"
+      - "traefik.http.routers.forgejo.rule=Host(`git.{{ domain_name }}`)"
+      - "traefik.http.routers.forgejo.entrypoints=websecure"
+      - "traefik.http.routers.forgejo.tls=true"
+      - "traefik.http.services.forgejo.loadbalancer.server.port=3000"
     volumes:
       - "{{ data_dir }}/forgejo:/data"
       - "{{ data_dir }}/configs/forgejo/forgejo.ini:/conf/app.ini:ro"
@@ -33,3 +58,6 @@ services:
       - "{{ data_dir }}/certs/wildcard.crt:/usr/local/share/ca-certificates/wildcard.crt:ro"
     networks:
       net:
+    depends_on:
+      - db
+      - authelia
