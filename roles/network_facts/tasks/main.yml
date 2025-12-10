@@ -1,0 +1,23 @@
+---
+# tasks file for roles/network_facts
+- name: Filter network facts
+  setup:
+    filter: all_ipv4_addresses
+- name: Set workload network IP
+  set_fact:
+    workload_IP: "{{ ansible_all_ipv4_addresses | ansible.utils.ipaddr(workload_network) | first }}"
+- name: Set storage network IP
+  set_fact:
+    storage_IP: "{{ ansible_all_ipv4_addresses | ansible.utils.ipaddr(storage_network) | first }}"
+- name: Verify workload IP is defined
+  assert:
+    that:
+      - workload_IP is defined
+    fail_msg: "No IP in {{ workload_network }}"
+    success_msg: "Selected IP: {{ workload_IP }}"
+- name: Verify storage IP is defined
+  assert:
+    that:
+      - storage_IP is defined
+    fail_msg: "No IP in {{ storage_network }}"
+    success_msg: "Selected IP: {{ storage_IP }}"

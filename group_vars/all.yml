@@ -1,0 +1,88 @@
+---
+# networks
+workload_network: 192.168.255.0/24
+storage_network: 10.10.255.0/24
+
+# domain name
+domain_name: vcc.local
+
+# docker images to build using files in roles/docker-images/files/images/[image_name]
+docker_build_images:
+   - forgejo
+   - authelia
+
+# build args for each image
+docker_build_args:
+  forgejo:
+    VERSION: "11.0.8"
+  authelia:
+    VERSION: "4.39.14"
+
+# data directory: where persistent data is stored on each target node
+data_dir: "/data"
+
+#### COMPOSE #####
+
+# compose services configuration
+# Create directories to persist container data on {{ data_dir }}/[data_directory]
+compose_data_directories:
+  - pgdata
+  - forgejo
+compose_nuke_data_directories: true # you WILL lose your data
+
+# List of directories to copy files from roles/compose-services/templates/configs/[config_directory]
+# to {{ data_dir }}/configs/[config_directory] applying templating
+compose_config_directories:
+  - traefik
+  - pgsql
+  - authelia
+  - forgejo
+compose_nuke_config_directories: true # you WILL lose your data
+
+# List of files to deploy the compose from roles/compose-services/templates/
+compose_file_names:
+  - traefik-compose.yml
+#  - part3-compose.yml # uncomment to enable part3 services
+compose_recreate: true # redeploy the compose stack
+
+# Enable/disable asserts 
+enable_asserts: true
+
+# Production/Development mode
+production_mode: false
+
+# Services variables (environment variables/config files)
+# postgres
+db_user: forgejo
+db_password: forgejo_pass
+db_name: forgejo
+
+# authelia
+authelia_db_user: authelia
+authelia_db_password: authelia_pass
+authelia_db: autheliadb
+authelia_url: "https://auth.{{ domain_name }}"
+# OIDC clients list
+authelia_oidc_clients:
+  # forgejo client
+  - id: "{{ forgejo_oidc_client_id}}"
+    secret: "{{ forgejo_oidc_client_secret }}"
+    token_endpoint_auth_method: "client_secret_basic"
+    authorization_policy: "one_factor"
+    public: false
+    redirect_uris:
+      - "https://git.{{ domain_name }}/user/oauth2/authelia/callback"
+    scopes:
+      - "openid"
+      - "profile"
+      - "email"
+      - "groups"
+
+# forgejo
+# admin and root are reserved names
+forgejo_admin_username: siteadmin
+forgejo_admin_password: admin
+forgejo_admin_email: admin@{{ domain_name }}
+forgejo_oidc_url: "{{ authelia_url }}"
+forgejo_oidc_client_id: forgejo
+forgejo_oidc_client_secret: forgejo_secret

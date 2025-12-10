@@ -1,0 +1,3 @@
+# {{ ansible_managed }}
+# mount {{ nfs_dir }} with the options: rw,no_root_squash
+{{ nfs_dir }} {{ storage_network }}(rw,sync,no_root_squash,no_subtree_check)

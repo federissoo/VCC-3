@@ -1,0 +1,4 @@
+---
+# networks
+workload_network: 192.168.255.0/24
+storage_network: 10.10.255.0/24

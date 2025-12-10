@@ -1,0 +1,7 @@
+---
+compose_data_directories:
+compose_nuke_data_directories: true # you WILL lose your data
+
+compose_file_names:
+  - docker-compose.yml
+compose_recreate: true

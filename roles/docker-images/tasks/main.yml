@@ -1,0 +1,38 @@
+---
+- name: Create /opt/container-images
+  ansible.builtin.file:
+    path: /opt/container-images
+    state: directory
+
+- name: Copy container images
+  ansible.posix.synchronize:
+    src: "{{ role_path }}/files/images/"
+    dest: "/opt/container-images/"
+    archive: true
+    delete: true
+
+- name: Build container images
+  community.docker.docker_image_build:
+    name: "{{ (registry_address + '/' if use_private_registry else '') + item }}"
+    tag: latest
+    path: "/opt/container-images/{{ item }}"
+    args: "{{ docker_build_args[item] | default({}) }}"
+    rebuild: always
+  loop: "{{ docker_build_images }}"
+  # retry the task that may fail
+  retries: 3
+  delay: 1
+  register: result
+  until: result is not failed
+
+- name: Push container images
+  community.docker.docker_image_push:
+    name: "registry.{{ domain_name }}:5000/{{ item }}"
+    tag: latest
+  loop: "{{ docker_build_images }}"
+  when: use_private_registry
+  # retry the task that may fail
+  retries: 3
+  delay: 1
+  register: result
+  until: result is not failed

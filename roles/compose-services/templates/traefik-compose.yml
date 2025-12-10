@@ -1,0 +1,31 @@
+services:
+  traefik:
+    image: traefik:v2.11
+    command:
+      # enable web UI (disabled in production mode)
+      - "--api.insecure={{ 'false' if production_mode else 'true' }}"
+      - "--providers.docker=true"
+      # do not expose containers by default through Traefik
+      - "--providers.docker.exposedbydefault=false"
+      # dynamic config (for TLS certificates)
+      - "--providers.file.filename=/etc/traefik/dynamic.yml"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      # logging configuration
+      - "--log.level=INFO"
+      - "--log.format=console"
+      - "--accesslog=true"
+      - "--accesslog.format=common"
+    ports:
+      - "80:80"
+      - "443:443"
+      {{ '- 8080:8080' if not production_mode else '' }}
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "{{ data_dir }}/certs:/certs:ro"
+      - "{{ data_dir }}/configs/traefik/dynamic.yml:/etc/traefik/dynamic.yml:ro"
+    networks:
+      net:
+
+networks:
+  net:

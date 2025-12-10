@@ -1,0 +1,13 @@
+controlnode.vcc.local ansible_connection=local
+
+[storage]
+controlnode.vcc.local
+
+[targets]
+node[1:2].vcc.local
+
+[all:vars]
+ansible_python_interpreter=/usr/bin/python3
+
+[targets:vars]
+ansible_user=vagrant

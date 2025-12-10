@@ -1,0 +1,109 @@
+server:
+  address: "tcp://0.0.0.0:9091"
+
+log:
+  level: info
+
+authentication_backend:
+  password_reset:
+    disable: true
+  file:
+    path: /config/users.yml
+
+session:
+  secret: "{{ lookup('password', '/dev/null', length=64) }}"
+  cookies:
+    - name: authelia_session
+      domain: {{ domain_name }}
+      authelia_url: https://auth.{{ domain_name }}
+  # redis:
+  #   host: redis
+  #   port: 6379
+  #   database_index: 0
+     
+access_control:
+  default_policy: deny
+  rules:
+    - domain: auth.{{ domain_name }}
+      policy: one_factor
+
+identity_providers:
+  oidc:
+    jwks:
+      - algorithm: RS256
+        # openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:4096 -out oidc.key
+        key: |
+          -----BEGIN PRIVATE KEY-----
+          MIIJQgIBADANBgkqhkiG9w0BAQEFAASCCSwwggkoAgEAAoICAQC9Bal91d2mcGLu
+          zFKsr1sI6MwhPEk7QBqjkTgHAy3rBnKCvBNUQ1LlgMIGVvFxGsQxyvePlWB/Cefy
+          W5sXh4DBG3fhP9CM6FkiavofuSaeBUOAlUn1WK7n5TDSe6FFhy55J7l7Y2rc8xFW
+          pozMFWOkxvwyVGAqsQqNVo2bgICY5bNje6hcNU+N0pNBol7zlUrWU8e9FzEad5eu
+          nJzhrILCUf+uCi37QXzRXAXyGmAZA9SX3byV/T0uEN0Sa2gD5Y7g8Kgz3IIfw/e2
+          kAJj3O8VxWrACNSxJqAz0e55khV92teEKE4XXoqN0O2E1Cm4c/4ELIuqE1QlfqiJ
+          UKovcOJ/p5PVOv5tRUPy58a3NAGN5Qym8CmNsorAOVd/0zFRsQIdwe/m4vBdWBHm
+          PlrtpOHJJLPtJRC5qXlzyBELA9ZW3pB/YP1kL00Bdw30sWYJz6HEitUgq3EBxXeW
+          Dw6GIvazKaZ0VG2g+N49XmRSnNPyUIWJV4o/EdQngwRTu1DU93S4KD/PldC5v66o
+          CSXbLy7O+Afb1XAqzhhq6H+xD8mMiq/sfPtaEIBNipCqMH1FWM6EmFAJT3yY+/g8
+          h+7WIqVeoD3goYHEAF+xmJaCnK7Ufybe7l5rUnxyNVEn95AfFsciYLn2VeiAEIA/
+          bAm+li/Ny64Q68n+FF+GILXfCHGRXwIDAQABAoICAE6RkO8OO3CYXHcYFPFUfkmI
+          wni6H1JyheAhV6GKj8aWSnjPBlXLGiTtTTjnYLp7vrtXu2lCVPbZPkE+FIxGNZ2O
+          9lh5dw1q8sncn5UaF9QtKe7DnxdNQn5/hLiozNMiqo2PloiUPXIT0swqtHGMHnv6
+          fg/JhKOaLWGsbXYKhumG6PbcCpIxUp0Hv0/T1xX2o0HNV0Pg5Pc0aKca0Bb55uww
+          u08zSgObJ++6CXqlvfYH4pExiNbriUehmNK0NGsSOz6CqdfMu4XKpieLWoL57aMm
+          CQZDZW0xOfvwMej0cNx8X4K+Yh9Sm9Lw2hmROrpB9H71qSQLnrlrGVDiZ6sKiAqC
+          Y3/tWoGzY7TgJMP6QOPkdLhIGbIl4vnV5Loi//7DS+kSmUghc7bgthiVaoSDD4Kp
+          nGzeYTcdPGwIi0g7VDAVUy5o15Cxpo+k6bJWPx4JKD1U5H5Me+fv4ChGieQk0cTc
+          oFhI1WKKBpnPIRrAVwtLIoFqykXwCFOcX8WWyfN6QBNbo0keTq5S6J4kI6fuvn+K
+          xK0J0groFnIAiSLDPlj3JI6ZXS97o84103WAV0Ahl3TNJzM/tgTnluRzNylsO3Vw
+          zITGzDwrkLpImxCfS6miM+jRoPGk2RAVr3Ael3PaOOXH0E1qYmtjUNSrkDDF4GGw
+          FmwrNkwxvjA4O943mNOpAoIBAQDr1aHwgUKkbYnZx4oY3kQneOuA3oruVGwfZNC0
+          h8lz8DdhCVN110/odTBN5KgE7KCvOGgcgSBP9N34BviTtxSGvrFDKHcr/KQIMw5X
+          Mmt9AgvqI/QFKG7QwG6bIOsfJptSvFmVcVUoSE6ScNRA5SzVov1OmV/YrPg3mXaS
+          GsZWrJFKUnx8orVxS75ui/LA64r2bRyadxofz3RKeR0NROp9jIatylufitXYTowG
+          iSyCIVM0/2MSx4KGoT0z7HP6DUErRAIhc2TzEF9ZKiF4Pp1IULTYymHpdIXCfszI
+          pnFBdyDlwtngOrqDDz2ItTIV+K4xfrPhGv3Fy9wmHzBPe/bDAoIBAQDNL1D4T+9z
+          21d0UjslVeIjXboEc7DQXLX/VCVykBEhca1BT+DnCH2mEkzShTIvZwM3EBTw0mIU
+          Ahs9dkcwuzor9V4/TmTnzgR69LtBaBBU87GM0VwBFy+Kb+Zsn+i+wpd+JvbTpQH7
+          v15NPn84Mg/I/+sxNmhIzC6G3PEUIJTEemZXSn6kKajotHR74eIrDA1UGpzPyuNO
+          1vXRlGKX/GJ40gkj7nqpDOgV7qxoZyNT6a57qgkZyItb2JcDiCvKLXlkJ5x6pwRN
+          HtmR7lYzPKRvMsI8WuDEgotMaw9CgF2IqJ2fyMdi22FgZ/Umiw+nMfMQCg1090/Z
+          C/2+vm4cEOk1AoIBAQDSJRUeGDBoEGuLsbCupDAa9Db2KFeoM3X9K3qFw5GRS/Ys
+          84B5OxkrTHF0l1HYwXoVaK/s5msClHHOd3e9OKCDyRxveXlnqsIHxGb88CKzy8UO
+          KGdiyTqlrTNh7B1XLrGtMcSp08lMEdJhz0RzZ0NiQtBw31521vp/oLH1UwJ1bWQx
+          0/q1nM8NW68fFnmDyt+S4ntgcMzIl7VKP03R6x0ALt47slueeLpA+wzvLgCJHGTm
+          jsObkkgO61J8GDDoGjN9+CXl5MuJg4dTDqWwXisMq03a98vzmS8vtomIKjg1W4/m
+          7I/0rKBR9JyiWsN8rJGb7Qkgh0qmnBdZqOUFjrK9AoIBAD+z8ASX9LTYpYdEvH4z
+          8tieEdGuBXg7QHn8KwAtgFQM0giT/zRba38y8Uzu84zKA7KFuKqn9rFVkhV78lBL
+          4JyjOlaXRTa+vJ9b+gMthtyJKFea7GCeTTFC2pxg7UbEbXpKKJm/AiWh3WpH/AF7
+          cXErG18VED2BvvQ6BlMEZou1oK57P2RCVuGgnQWVNL2+qSiydnsA95+Tl5Aw7IdZ
+          YU03kITqVoTDsA6XIknrs4kq5PQZ72dk3vduADyle0ry4VxZ+/gMgIZdDJmFEJgp
+          vLeVX76TTHNWQF9CYeN4rRFvoDhqgpTLnajrva3wwLRdCqSxKkplOhId6fLddpwa
+          F/0CggEAeSnGaBi8+f96Acw4bfj+m8VOPKcPR0XFRYFG064p+3SInVEc7uboa1a4
+          IfcvhVxRjuQYWGN0Q9gGrmO+a3tXzEkyu0DN2s21b0xaP8SP0AU5ATy5ihQ5ORB6
+          NB6Uy9Xz9C9HD85f9JNLti1QrwGKYr9Ww8w9savCrveYksbhfKRhECWadPV1rA7q
+          eL+lmeCxe79HFpDpgM1xsfWM8nCsylwiWm3hazp9KA4nmJuw1FYNrO1vufBGaUM0
+          R01gY/3nw9BIttO9GatP+m4BI//K/GEe1nGsrLtbKxW6i+3n7Gs+lp/oo7dhzJMe
+          AhGI3+asAk7/MkqaUiHlvq32FmuCqw==
+          -----END PRIVATE KEY-----
+    clients:
+# TODO: generate all OIDC clients using authelia_oidc_clients variable
+#{% for c in authelia_oidc_clients %}
+# ...
+#{% endfor %}
+
+storage:
+  # local: 
+  #   path: /config/db.sqlite3
+  postgres:
+    address: 'tcp://' # TODO: add the Postgres service hostname and port
+    database: {{ authelia_db }}
+    schema: public
+    username: {{ authelia_db_user }}
+    password: {{ authelia_db_password }}
+    timeout: 5s
+  encryption_key: "{{ lookup('password', '/dev/null', length=64) }}"
+
+notifier:
+  disable_startup_check: true
+  filesystem:
+    filename: /config/notification.txt

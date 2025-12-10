@@ -1,0 +1,7 @@
+---
+- name: Restart NFS server
+  ansible.builtin.service:
+    name: nfs-kernel-server
+    state: restarted
+
+# TODO: handlers file for roles/nfs_server

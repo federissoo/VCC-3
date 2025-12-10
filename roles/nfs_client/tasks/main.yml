@@ -1,0 +1,34 @@
+---
+# TODO: implement the tasks for NFS client setup. Make sure to use the storage network for NFS mount
+
+- name: "Create NFS share directory"
+  ansible.builtin.file:                     
+      path: "{{nfs_dir}}"
+      state: directory         
+      mode: '0755'
+
+- name: Install NFS client
+  ansible.builtin.apt: 
+    name: nfs-common
+    state: present           
+    update_cache: yes 
+
+- name: Mount NFS share
+  ansible.builtin.mount:
+    path: "{{nfs_dir}}"
+    src: "storage.{{ domain_name }}:{{ nfs_dir }}"
+    fstype: nfs
+    opts: rw,sync,hard
+    state: mounted
+# use storage network for NFS mount
+
+## check mount
+- block:
+  - name: Get mount information
+    command: cat /proc/mounts
+    register: mounts_out
+  - assert:
+      that:
+        - mounts_out.stdout is search('storage\\.' ~ domain_name | regex_escape ~ ':/data.*clientaddr=' ~ storage_IP | regex_escape ~ '.*')
+      fail_msg: "NFS share not mounted correctly"
+  when: enable_asserts

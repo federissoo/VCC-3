@@ -1,0 +1,16 @@
+users:
+  admin:
+    #  docker run --rm authelia/authelia:4.39.14 authelia crypto hash generate bcrypt --password "admin"
+    password: $2b$12$hXk.NQsWkhuSUGSBJwiNZuEuzLTMMtd.qZr2LT2R8C4aBMxEH7l6m
+    email: admin@{{ domain_name }}
+    displayname: "Admin User"
+    groups:
+      - admins
+
+  user1:
+    # password: userpass
+    password: $2b$12$b7WVGZUft6f/4ZZLDor/AObQHbIo4OQVLZpn0T5E7qv08Zc7X/ocm
+    email: user@{{ domain_name }}
+    displayname: "John Doe"
+    groups:
+      - users

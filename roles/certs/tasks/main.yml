@@ -1,0 +1,38 @@
+---
+- name: Check if certificate already exists
+  ansible.builtin.stat:
+    path: "{{ data_dir }}/certs/wildcard.crt"
+  register: cert_stat
+
+- name: Generate wildcard certificate (only if missing)
+  block:
+    - name: Ensure certs directory exists
+      ansible.builtin.file:
+        path: "{{ data_dir }}/certs/"
+        state: directory
+        mode: '0755'
+
+    - name: Create self-signed key for wildcard certificate
+      community.crypto.openssl_privatekey:
+        path: "{{ data_dir }}/certs/wildcard.key"
+        type: RSA
+        size: 2048
+        mode: '0600'
+
+    - name: Create certificate signing request (CSR) for self-signed certificate
+      community.crypto.openssl_csr_pipe:
+        privatekey_path: "{{ data_dir }}/certs/wildcard.key"
+        common_name: '*.{{ domain_name }}'
+        organization_name: VCC
+        subject_alt_name:
+          - "DNS:*.{{ domain_name }}"
+          - "DNS:{{ domain_name }}"
+      register: csr
+
+    - name: Create self-signed certificate from CSR
+      community.crypto.x509_certificate:
+        path: "{{ data_dir }}/certs/wildcard.crt"
+        csr_content: "{{ csr.csr }}"
+        privatekey_path: "{{ data_dir }}/certs/wildcard.key"
+        provider: selfsigned
+  when: not cert_stat.stat.exists

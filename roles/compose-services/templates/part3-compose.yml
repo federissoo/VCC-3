@@ -1,0 +1,35 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      # TODO
+    volumes:
+      # TODO
+    networks:
+      net:
+
+  authelia:
+    image: authelia
+    environment:
+      # TODO
+    labels:
+      # TODO
+    volumes:
+      # TODO
+    networks:
+      net:
+
+  forgejo:
+    image: forgejo
+    environment:
+      # TODO
+    labels:
+      # TODO
+    volumes:
+      - "{{ data_dir }}/forgejo:/data"
+      - "{{ data_dir }}/configs/forgejo/forgejo.ini:/conf/app.ini:ro"
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+      - "{{ data_dir }}/certs/wildcard.crt:/usr/local/share/ca-certificates/wildcard.crt:ro"
+    networks:
+      net:

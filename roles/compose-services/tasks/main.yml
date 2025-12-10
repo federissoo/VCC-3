@@ -1,0 +1,84 @@
+---
+- name: Copy docker-compose files to remote host
+  ansible.builtin.template:
+    src: "{{ item }}"
+    dest: "/opt/{{ item }}"
+  loop: "{{ compose_file_names }}"
+
+- name: Undeploy compose
+  community.docker.docker_compose_v2:
+    project_name: vcc
+    project_src: /opt/
+    files: "{{ compose_file_names }}"
+    remove_volumes: true
+    state: absent
+  when: compose_recreate
+
+- name: Delete directories in {{ data_dir}}
+  ansible.builtin.file:
+    path: "{{ data_dir}}/{{ item }}"
+    state: absent
+  loop: "{{ compose_data_directories + ['configs' if compose_nuke_config_directories else ''] }}"
+  when: compose_nuke_data_directories
+
+- name: Create data directories in {{ data_dir }}
+  ansible.builtin.file:
+    path: "{{ data_dir }}/{{ item }}"
+    state: directory
+  loop: "{{ compose_data_directories }}"
+
+# template files for services configuration
+
+- name: Create config directories in {{ data_dir }}/configs
+  ansible.builtin.file:
+    path: "{{ data_dir }}/configs/{{ item }}"
+    state: directory
+    mode: '0755'
+  loop: "{{ compose_config_directories }}"
+
+- name: Find template files in compose config directories
+  local_action:
+    module: ansible.builtin.stat
+    path: "{{ role_path }}/templates/configs/{{ item }}"
+  loop: "{{ compose_config_directories }}"
+  register: cfg_templates_dir_stats
+
+- name: Build list of existing local template dirs
+  ansible.builtin.set_fact:
+    cfg_existing_dirs: "{{ cfg_templates_dir_stats.results | selectattr('stat.exists', 'defined') | selectattr('stat.exists') | map(attribute='item') | list }}"
+
+- name: Find template files in compose config directories (only where present)
+  local_action:
+    module: ansible.builtin.find
+    paths: "{{ role_path }}/templates/configs/{{ item }}"
+    file_type: file
+    recurse: true
+  loop: "{{ cfg_existing_dirs }}"
+  register: template_files_raw
+  when: cfg_existing_dirs | length > 0
+
+- name: Flatten template file list
+  set_fact:
+    template_files: "{{ (template_files_raw.results | default([])) | map(attribute='files') | list | flatten }}"
+
+- name: Template configuration files
+  ansible.builtin.template:
+    src: "{{ item.path }}"
+    dest: "{{ data_dir }}/configs/{{ item.path | regex_replace('^.*/configs/', '') }}"
+  loop: "{{ template_files | default([]) }}"
+  loop_control:
+    label: "{{ item.path }}"
+
+# start services
+
+- name: Create and start services
+  community.docker.docker_compose_v2:
+    project_name: vcc
+    project_src: /opt/
+    files: "{{ compose_file_names }}"
+    state: present
+  # retry the task that may fail
+  retries: 3
+  delay: 1
+  register: result
+  until: result is not failed
