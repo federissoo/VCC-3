@@ -1,0 +1,17 @@
+# Preserva i line endings originali per tutti i file
+* text=auto eol=lf
+
+# File di testo devono usare LF
+*.sh text eol=lf
+*.ini text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.py text eol=lf
+*.txt text eol=lf
+*.md text eol=lf
+
+# File binari
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
